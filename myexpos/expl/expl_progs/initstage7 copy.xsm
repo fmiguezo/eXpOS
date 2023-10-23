@@ -1,0 +1,19 @@
+0
+2056
+0
+0
+0
+0
+0
+0
+BRKP
+MOV R0, 1       // Inicializa R0 en 1
+MOV R2, 5       // Inicializa R2 en 5
+GE R2, R0       // Si R2 es mayor o igual a R0
+JZ R2, 2074     // Si R2 e 0, salta a la ultima instruccion
+MOV R1, R0      // Asigna el valor de R0 a R1
+MUL R1, R0      // Multiplica R1 por R0
+BRKP
+ADD R0, 1       // Incrementa R0 en 1
+JMP 2060        // Salta a la línea 2060
+INT 10          // ejecuta la isntruccion 10 correspodiente a la llamada al sistema
