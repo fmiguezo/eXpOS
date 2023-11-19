@@ -18,6 +18,10 @@ loadi(3, 16);
 loadi(4, 17);
 loadi(5, 18);
 
+// Carga de INT 7
+loadi(16,29);
+loadi(17,30);
+
 PTBR = PAGE_TABLE_BASE;
 // El programa requiere 10 paginas
 PTLR = 10;
