@@ -1,0 +1,53 @@
+// 1 cambiar pila de usuario a la del kernel
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;  // Guarda el SP del usuario en UPTR (palabra 13) en la tabla de procesos
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 11] * 512 - 1; // Asigna SP al inicio de la pila del kernel
+backup;
+
+// 2 obtener PID del proceso actual
+alias currentPID R0;
+currentPID = [SYSTEM_STATUS_TABLE + 1]; // PID actual, palabra 1 de la tabla de estado del sistema
+
+// 3 guardar KPTR, PTBR y PTLR
+alias process_table_entry R1;
+process_table_entry = PROCESS_TABLE + currentPID * 16; // entrada de la tabla de proceso del proceso actual 
+
+[process_table_entry + 12] = SP % 512; // palabra 12: Pila del kernel, KPTR % 512 -> desplazamiento del puntero de la pila del kernel dentro de la página del area de usuario
+[process_table_entry + 14] = PTBR; // palabra 1B: PBLR
+[process_table_entry + 15] = PTLR; // palabra 15: PTLR
+
+[process_table_entry + 4] = READY; // palabra 4: Estado
+
+// 4 algoritmo que alterna entre dos procesos
+alias newPID R2;
+if(currentPID == 0) then
+    newPID = 1;
+else
+    newPID = 0;
+endif;
+
+// 5 restaurar los valores SP, PTBR y PTLR para el nuevo proceso
+alias new_process_table R3;
+new_process_table = PROCESS_TABLE + newPID * 16; // entrada de la tabla de proceso del nuevo proceso
+
+SP =  [new_process_table + 11] * 512 + [new_process_table + 12] ; // + 11 palabra de comienzo del area de usuario * desplazamiento, + 12: palabra al puntero de la pila del kernel
+PTBR = [new_process_table + 14]; // palabra 14 PBLR
+PTLR = [new_process_table + 15]; // palabra 15 PTLR
+
+// 6 establecer el PID de la tabla de estado del sistema como nuevoPID
+[SYSTEM_STATUS_TABLE + 1] = newPID;
+
+// 7 y 8 si el proceso esta creado
+if([new_process_table + 4] == CREATED) then
+    [new_process_table + 4] = RUNNING; // cambiamos el estado a ejecutando
+    SP = [new_process_table + 13]; // a SP le asignamos la parte superior de la pila 
+    ireturn;
+endif;
+
+// 8 le asignamos el estado ejecutando
+[new_process_table + 4] = RUNNING;
+
+// 9 restauramos el contexto del nuevo proceso desde la pila del kernel y cambiamos la pila a la pila de usuario
+restore;
+SP = [PROCESS_TABLE + 16 * [SYSTEM_STATUS_TABLE + 1] + 13]; // restauramos el contexto, + 13 porque es la palabra de la pila del kernel
+
+ireturn;
