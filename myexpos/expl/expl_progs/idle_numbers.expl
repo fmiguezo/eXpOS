@@ -1,0 +1,15 @@
+int main()
+{
+decl
+    int temp,num; //declaro dos variables de tipo entero
+enddecl
+begin
+    num = 101; //le asigno el valor 101 a la variable num
+//imprimo enteros hasta el 200 inclusive
+    while ( num <= 200 ) do
+         temp = exposcall ( "Write" , -2, num ); //llamada a imprimir el num
+         num = num + 1; //incremento de la variable num
+    endwhile;
+    return 0;
+end
+}

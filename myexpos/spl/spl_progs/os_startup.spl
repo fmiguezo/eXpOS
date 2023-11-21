@@ -1,3 +1,7 @@
+// Carga del IDLE
+loadi(69,11);
+loadi(70,12);
+
 // Carga de la biblioteca de llamadas al sistema
 loadi(63,13);
 loadi(64,14);
@@ -22,24 +26,70 @@ loadi(5, 18);
 loadi(16,29);
 loadi(17,30);
 
-PTBR = PAGE_TABLE_BASE;
-// El programa requiere 10 paginas
-PTLR = 10;
+PTBR = PAGE_TABLE_BASE; //inicializo PTBR para tabla de paginas de PID 0
+PTLR = 10; // El programa requiere 10 paginas
 
-// Biblioteca
+//configuracion de la tabla de paginas del proceso PID 0 IDLE
+
+//Biblioteca para IDLE 
 [PTBR+0] = 63;
 [PTBR+1] = "0100";
 [PTBR+2] = 64;
 [PTBR+3] = "0100";
 
-// Heap
+//Heap para IDLE
+[PTBR+4] = -1;
+[PTBR+5] = "0000";
+[PTBR+6] = -1;
+[PTBR+7] = "0000";
+
+//Codigo para IDLE
+[PTBR+8] = 69;
+[PTBR+9] = "0100";
+[PTBR+10] = 70;
+[PTBR+11] = "0100";
+[PTBR+12] = -1;
+[PTBR+13] = "0000";
+[PTBR+14] = -1;
+[PTBR+15] = "0000";
+
+//Pila para IDLE
+[PTBR+16] = 81;
+[PTBR+17] = "0110";
+[PTBR+18] = -1;
+[PTBR+19] = "0000";
+
+//configuramos tabla de procesos para IDLE
+
+[PROCESS_TABLE + 1] = 0; // PID 0 para el proceso inactivo
+[PROCESS_TABLE + 4] = CREATED;  // 4 porque las palabras 4  y 5 son las del estado del proceso
+[PROCESS_TABLE + 11] = 82; //numero de pagina de area de usuario
+[PROCESS_TABLE + 13] = 8 * 512; //configuro entrada UPTR de la tabla del PID 0 con la dirección lógica de la parte superior de la pila de usuario dado por SP
+[PROCESS_TABLE + 14] = PAGE_TABLE_BASE;
+[PROCESS_TABLE + 15] = 10;
+[PROCESS_TABLE + 12] = 0; //configuro campo KPTR en 0 del proceso PID 0
+
+[81 * 512] = [69*512 + 1];//configuro el valor de IP del encabezado del proceso 0 en la primera pagina del stack de usuario
+// IP del punto de entrada desde el encabezado del proceso inactivo hasta la parte superior de la pila de usuarios del proceso inactivo
+
+PTBR = PAGE_TABLE_BASE + 20;//entrada para tabla de paginas de INIT PID 1
+PTLR = 10; // El programa requiere 10 paginas
+
+//codigo INIT
+//Biblioteca
+[PTBR+0] = 63;
+[PTBR+1] = "0100";
+[PTBR+2] = 64;
+[PTBR+3] = "0100";
+
+//Heap
 [PTBR+4] = 78;
 [PTBR+5] = "0110";
 [PTBR+6] = 79;
 [PTBR+7] = "0110";
 
-// Codigo
-[PTBR+8] = 65;
+//Codigo
+[PTBR+8] =  65;
 [PTBR+9] = "0100";
 [PTBR+10] = 66;
 [PTBR+11] = "0100";
@@ -48,22 +98,27 @@ PTLR = 10;
 [PTBR+14] = -1;
 [PTBR+15] = "0000";
 
-// Pila
+//Pila
 [PTBR+16] = 76;
 [PTBR+17] = "0110";
 [PTBR+18] = 77;
 [PTBR+19] = "0110";
 
-SP = 8*512;
-// Inicia en pagina 2
-[76*512] = [65 * 512 + 1];
+//configuro la tabla de procesos para INIT
 
+[PROCESS_TABLE + 16 +1] = 1;// PID del proceso INIT, numero de página de área de usuario en 80, para el proceso INIT
+[PROCESS_TABLE + 16 + 11] = 80; //numero de pagina de area de usuario para el proceso INIT, PID 1 para el proceso de inicio, palabra 1
+[PROCESS_TABLE +16+4] = RUNNING; //estado del proceso
+[PROCESS_TABLE + 16 + 13] = 8*512; // configuramos UPTR para INIT
+[PROCESS_TABLE + 16 + 12] = 0; // configuramos KPTR en 0
+[PROCESS_TABLE + 16 + 14] = PTBR; //PTBR seteado en PAGE_TABLE_BASE +20
+[PROCESS_TABLE + 16 + 15] = PTLR; //PTLR seteado en 10
+[76*512] = [65 * 512 + 1];//IP del encabezado de INIT cuando el programa comienza
 
-// Tabla de procesos
-[PROCESS_TABLE + 11] = 80;
-[PROCESS_TABLE + 1] = 0;
+//inicializo SP
+SP = 8*512;  // Inicializa SP en la direccion logica
 
-// Tabla es status del sistema
-[SYSTEM_STATUS_TABLE + 1] = 0;
+//Tabla de estado del sistema
+[SYSTEM_STATUS_TABLE + 1] = 1;	// PID 1 para el proceso INIT
 
 ireturn;
