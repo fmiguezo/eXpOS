@@ -1,4 +1,4 @@
-# eXpOS
+# eXpOS NITC Roadmap
 ## Resolución de trabajo práctico para Arquitectura y Sistemas Operativos, UTN-FRBA
 
 ###  Objetivo General
